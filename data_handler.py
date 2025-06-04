@@ -18,7 +18,6 @@ def fetch_latest_result():
 
             number = outcome.get("number")
             timestamp = game_data.get("startedAt")
-
             lucky_numbers = [item["number"] for item in lucky_list]
 
             if number is not None:
@@ -27,10 +26,8 @@ def fetch_latest_result():
                     "timestamp": timestamp,
                     "lucky_numbers": lucky_numbers
                 }
-        else:
-            print(f"Erro HTTP: {response.status_code}")
     except Exception as e:
-        print(f"Erro ao acessar a API: {e}")
+        print(f"Erro na API: {e}")
     return None
 
 def update_history(history, new_result, limit=50):
