@@ -1,44 +1,30 @@
 import streamlit as st
-import threading
-import time
 from data_handler import fetch_latest_result, update_history
-from analyzer import get_frequency, get_hot_and_cold
-from predictor import predict_next
 
-st.set_page_config(page_title="XXXtreme Roulette Monitor", layout="wide")
+st.set_page_config(page_title="XXXtreme Lightning Monitor", layout="centered")
+st.title("⚡ XXXtreme Lightning Roulette Monitor")
 
-# Inicializa histórico
 if "history" not in st.session_state:
     st.session_state.history = []
 
-st.title("🎰 Monitor de Números - XXXtreme Lightning Roulette")
+st.markdown("Clique no botão abaixo para buscar e analisar o próximo número sorteado:")
 
-def background_updater():
-    while True:
-        latest = fetch_latest_result()
-        if latest:
-            st.session_state.history = update_history(st.session_state.history, latest)
-        time.sleep(30)  # Atualiza a cada 30 segundos
+if st.button("🔍 Analisar Números"):
+    latest = fetch_latest_result()
+    st.session_state.history = update_history(st.session_state.history, latest)
+    if latest:
+        st.success(f"Número {latest['number']} capturado com sucesso!")
+    else:
+        st.warning("Nenhum novo número encontrado.")
 
-# Inicia o monitoramento em background (apenas uma vez)
-if "thread_started" not in st.session_state:
-    thread = threading.Thread(target=background_updater, daemon=True)
-    thread.start()
-    st.session_state.thread_started = True
+st.subheader("📊 Últimos Números Monitorados")
 
-st.subheader("📉 Números Monitorados (Últimos 50)")
-st.write([h["number"] for h in st.session_state.history])
-
-if st.button("📊 Analisar Dados Coletados"):
-    freq = get_frequency(st.session_state.history)
-    hot, cold = get_hot_and_cold(freq)
-    prediction = predict_next(freq)
-
-    st.subheader("🔥 Números Quentes")
-    st.write(hot)
-
-    st.subheader("❄️ Números Frios")
-    st.write(cold)
-
-    st.subheader("🔮 Previsão do Próximo Número")
-    st.write(prediction)
+if st.session_state.history:
+    for item in st.session_state.history:
+        st.write(f"""
+        🎯 **Número**: {item['number']}  
+        ⚡ **Multiplicadores**: {item['lucky_numbers']}  
+        🕒 **Horário**: {item['timestamp']}
+        """)
+else:
+    st.info("Nenhum número foi capturado ainda.")
