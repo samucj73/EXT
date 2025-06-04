@@ -34,7 +34,7 @@ else:
 st.markdown(f"📊 Números coletados: **{len(st.session_state.history)}** / 50")
 
 # Botão de análise aparece ao atingir 50
-if len(st.session_state.history) >= 50:
+if len(st.session_state.history) >= 10:
     st.subheader("📈 Pronto para análise!")
     if st.button("🔍 Analisar os 50 últimos sorteios"):
         numeros = [item["number"] for item in st.session_state.history]
