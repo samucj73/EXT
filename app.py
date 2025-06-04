@@ -1,40 +1,41 @@
 import streamlit as st
 import time
 from data_handler import fetch_latest_result
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Monitor XXXtreme", layout="centered")
 st.title("🎰 Monitor de Sorteios - XXXtreme Lightning Roulette")
 
+# 🔄 Atualiza automaticamente a cada 10 segundos
+st_autorefresh(interval=10_000, key="refresh")
+
+# Inicializa estados
 if "history" not in st.session_state:
     st.session_state.history = []
-if "last_check" not in st.session_state:
-    st.session_state.last_check = 0
 if "last_seen_timestamp" not in st.session_state:
     st.session_state.last_seen_timestamp = None
 
-# ⏱ Atualiza a cada 10 segundos
-if time.time() - st.session_state.last_check > 10:
-    result = fetch_latest_result()
-    st.session_state.last_check = time.time()
+# 🔍 Busca o último resultado
+result = fetch_latest_result()
 
-    if result and result["timestamp"] != st.session_state.last_seen_timestamp:
-        st.session_state.history.insert(0, result)
-        st.session_state.history = st.session_state.history[:50]
-        st.session_state.last_seen_timestamp = result["timestamp"]
+if result and result["timestamp"] != st.session_state.last_seen_timestamp:
+    st.session_state.history.insert(0, result)
+    st.session_state.history = st.session_state.history[:50]
+    st.session_state.last_seen_timestamp = result["timestamp"]
 
-# 🔢 Mostra os números sendo sorteados (estilo “bot”)
+# 🎯 Mostra números em tempo real
 st.subheader("🎲 Números Sorteados ao Vivo:")
 if st.session_state.history:
-    for item in st.session_state.history[:10]:  # mostra os 10 mais recentes
+    for item in st.session_state.history[:10]:
         st.write(f"🎯 Número: {item['number']} | ⚡ Lucky: {item['lucky_numbers']} | 🕒 {item['timestamp']}")
 else:
-    st.info("Aguardando os primeiros números serem sorteados...")
+    st.info("⏳ Aguardando os primeiros números...")
 
-st.markdown(f"🔄 Total de números capturados: **{len(st.session_state.history)}** / 50")
+st.markdown(f"📊 Números coletados: **{len(st.session_state.history)}** / 50")
 
-# 🔘 Botão de análise só aparece se houver 50 números
+# Botão de análise aparece ao atingir 50
 if len(st.session_state.history) >= 50:
-    st.subheader("📊 Pronto para análise!")
+    st.subheader("📈 Pronto para análise!")
     if st.button("🔍 Analisar os 50 últimos sorteios"):
         numeros = [item["number"] for item in st.session_state.history]
         freq = {n: numeros.count(n) for n in set(numeros)}
@@ -44,7 +45,6 @@ if len(st.session_state.history) >= 50:
         for n, f in ordenado[:10]:
             st.write(f"➡️ Número {n} saiu {f} vezes")
 
-        # Lucky numbers análise
         lucky_total = []
         for item in st.session_state.history:
             lucky_total.extend(item["lucky_numbers"])
