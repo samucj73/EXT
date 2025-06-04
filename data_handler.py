@@ -1,26 +1,11 @@
 import requests
+import json
+import os
 
 API_URL = "https://api.casinoscores.com/svc-evolution-game-events/api/xxxtremelightningroulette/latest"
 HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
-
-# Mapeamento auxiliar
-def get_line(number):
-    if number == 0:
-        return None
-    return ((number - 1) % 3) + 1  # 1: primeira, 2: segunda, 3: terceira
-
-def get_column(number):
-    if number == 0:
-        return None
-    return ((number - 1) // 3) + 1  # coluna de 1 a 12
-
-def is_low(number):
-    return number != 0 and number <= 18
-
-def is_high(number):
-    return number >= 19
 
 def fetch_latest_result():
     try:
@@ -33,23 +18,34 @@ def fetch_latest_result():
             lucky_list = result.get("luckyNumbersList", [])
 
             number = outcome.get("number")
+            color = outcome.get("color", "-")
             timestamp = game_data.get("startedAt")
             lucky_numbers = [item["number"] for item in lucky_list]
-            color = outcome.get("color", "Unknown")
-            parity = outcome.get("type", "Unknown")
-            line = get_line(number)
-            column = get_column(number)
-            low_high = "Low" if is_low(number) else "High" if is_high(number) else "Zero"
 
             return {
                 "number": number,
-                "timestamp": timestamp,
-                "lucky_numbers": lucky_numbers,
                 "color": color,
-                "parity": parity,
-                "line": line,
-                "column": column,
-                "low_high": low_high
+                "timestamp": timestamp,
+                "lucky_numbers": lucky_numbers
             }
-    except Exception as e:
+    except:
         return None
+
+# ✅ Função para salvar os resultados em um arquivo JSON (um abaixo do outro)
+def salvar_resultado_em_arquivo(history, caminho="historico_resultados.json"):
+    dados_existentes = []
+
+    # Se já existe o arquivo, lê os dados anteriores
+    if os.path.exists(caminho):
+        with open(caminho, "r") as f:
+            try:
+                dados_existentes = json.load(f)
+            except json.JSONDecodeError:
+                dados_existentes = []
+
+    # Adiciona os novos 10 resultados ao final
+    novos = list(reversed(history))  # reverte para salvar na ordem cronológica
+    dados_existentes.extend(novos)
+
+    with open(caminho, "w") as f:
+        json.dump(dados_existentes, f, indent=2)
