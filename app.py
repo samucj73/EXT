@@ -1,49 +1,39 @@
-import streamlit as st
-from data_handler import fetch_latest_result
-from streamlit_autorefresh import st_autorefresh
 from analysis import analisar_estatisticas
 
-st.set_page_config(page_title="Monitor XXXtreme", layout="centered")
+# Dentro do botão:
+if st.button("🔍 Analisar os 10 últimos sorteios"):
+    stats = analisar_estatisticas(st.session_state.history)
 
-st.markdown("<h1 style='text-align: center;'>🎰 Monitor de Sorteios - XXXtreme Lightning Roulette</h1>", unsafe_allow_html=True)
+    st.markdown("### 🎯 Frequência dos Números (Top 10)", unsafe_allow_html=True)
+    for n, f in stats["frequencia"][:10]:
+        st.write(f"➡️ Número {n} saiu **{f}x**")
 
-# Autorefresh até 10 sorteios coletados
-if "history" not in st.session_state:
-    st.session_state.history = []
-if "last_seen_timestamp" not in st.session_state:
-    st.session_state.last_seen_timestamp = None
-if len(st.session_state.history) < 10:
-    st_autorefresh(interval=10_000, key="refresh")
+    st.markdown("### ⚡ Lucky Numbers Mais Frequentes", unsafe_allow_html=True)
+    for n, f in stats["lucky_frequencia"]:
+        st.write(f"🌟 Lucky {n}: apareceu **{f}x**")
 
-# Coleta o resultado mais recente
-result = fetch_latest_result()
-if result and result["timestamp"] != st.session_state.last_seen_timestamp:
-    st.session_state.history.insert(0, result)
-    st.session_state.history = st.session_state.history[:50]
-    st.session_state.last_seen_timestamp = result["timestamp"]
+    st.markdown("### 🎨 Cores", unsafe_allow_html=True)
+    st.write(f"🔴 Vermelhos: {stats['vermelho']} | ⚫ Pretos: {stats['preto']}")
 
-# Exibe resultados ao vivo
-st.subheader("🎲 Últimos Números Sorteados:")
-if st.session_state.history:
-    for item in st.session_state.history[:10]:
-        st.write(f"🎯 Número: {item['number']} | 🎨 Cor: {item['color']} | ⚡ Lucky: {item['lucky_numbers']} | 🕒 {item['timestamp']}")
-else:
-    st.info("⏳ Aguardando os primeiros resultados...")
+    st.markdown("### 🔢 Pares / Ímpares", unsafe_allow_html=True)
+    st.write(f"🔷 Pares: {stats['pares']} | 🔶 Ímpares: {stats['impares']}")
 
-st.markdown(f"<div style='text-align: center;'>📊 Sorteios coletados: <strong>{len(st.session_state.history)}</strong> / 50</div>", unsafe_allow_html=True)
+    st.markdown("### 🧭 Baixos / Altos", unsafe_allow_html=True)
+    st.write(f"⬇️ Baixos (1-18): {stats['baixos']} | ⬆️ Altos (19-36): {stats['altos']}")
 
-# Botão de análise
-if len(st.session_state.history) >= 10:
-    st.subheader("📈 Pronto para análise!")
-    if st.button("🔍 Analisar os 10 últimos sorteios"):
-        analisar_estatisticas(st.session_state.history[:10])
+    st.markdown("### 🏛️ Colunas", unsafe_allow_html=True)
+    for col, qnt in stats["colunas"].items():
+        st.write(f"📊 Coluna {col}: {qnt} números")
 
-# Botão de reinício
-if st.button("♻️ Reiniciar Coleta"):
-    st.session_state.history = []
-    st.session_state.last_seen_timestamp = None
-    st.experimental_rerun()
+    st.markdown("### 🧱 Linhas", unsafe_allow_html=True)
+    for lin, qnt in stats["linhas"].items():
+        st.write(f"📈 Linha {lin}: {qnt} números")
 
-# Rodapé
-st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 0.9em;'>Desenvolvido por Kanō Systems © 2025</p>", unsafe_allow_html=True)
+    st.markdown("### 🔮 Previsão Refinada dos Próximos 10 Números", unsafe_allow_html=True)
+    st.success("🎯 Números Prováveis:")
+    st.markdown(
+        "<div style='font-size: 28px; text-align: center; color: darkblue;'>"
+        + " | ".join(str(n) for n in stats["previsao"]) +
+        "</div>",
+        unsafe_allow_html=True
+    )
