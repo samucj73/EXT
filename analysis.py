@@ -1,43 +1,42 @@
 from collections import Counter
+import streamlit as st
 
-# Tabelas auxiliares da roleta europeia (0 a 36)
-RED_NUMBERS = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}
-BLACK_NUMBERS = {2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35}
+def analisar_estatisticas(history):
+    numeros = [item["number"] for item in history]
+    cores = [item["color"].lower() for item in history]
 
-def get_frequency(history):
-    numbers = [entry["number"] for entry in history]
-    return Counter(numbers)
+    pares = sum(1 for n in numeros if n % 2 == 0)
+    impares = len(numeros) - pares
+    baixos = sum(1 for n in numeros if 1 <= n <= 18)
+    altos = sum(1 for n in numeros if 19 <= n <= 36)
 
-def get_hot_and_cold(freq_counter, top_n=5):
-    most_common = freq_counter.most_common()
-    hot = most_common[:top_n]
-    cold = most_common[-top_n:]
-    return hot, cold
+    vermelhos = cores.count("red")
+    pretos = cores.count("black")
 
-def count_red_black(numbers):
-    red = sum(1 for n in numbers if n in RED_NUMBERS)
-    black = sum(1 for n in numbers if n in BLACK_NUMBERS)
-    zero = numbers.count(0)
-    return {"red": red, "black": black, "zero": zero}
+    colunas = [((n - 1) % 3 + 1) for n in numeros if n != 0]
+    duzias = [((n - 1) // 12 + 1) for n in numeros if n != 0]
 
-def count_even_odd(numbers):
-    even = sum(1 for n in numbers if n != 0 and n % 2 == 0)
-    odd = sum(1 for n in numbers if n % 2 == 1)
-    return {"even": even, "odd": odd}
+    st.write("🎯 **Top 5 Números Mais Frequentes:**")
+    for n, freq in Counter(numeros).most_common(5):
+        st.write(f"➡️ Número {n}: {freq} vezes")
 
-def count_high_low(numbers):
-    low = sum(1 for n in numbers if 1 <= n <= 18)
-    high = sum(1 for n in numbers if 19 <= n <= 36)
-    return {"low": low, "high": high}
+    st.write("🥶 **Top 5 Números Menos Frequentes:**")
+    for n, freq in Counter(numeros).most_common()[-5:]:
+        st.write(f"🔹 Número {n}: {freq} vezes")
 
-def count_columns(numbers):
-    col1 = sum(1 for n in numbers if n != 0 and (n - 1) % 3 == 0)
-    col2 = sum(1 for n in numbers if n != 0 and (n - 2) % 3 == 0)
-    col3 = sum(1 for n in numbers if n != 0 and n % 3 == 0)
-    return {"col1": col1, "col2": col2, "col3": col3}
+    st.write("🔴⚫ **Cores:**")
+    st.write(f"🔴 Vermelhos: {vermelhos} | ⚫ Pretos: {pretos}")
 
-def count_dozen(numbers):
-    d1 = sum(1 for n in numbers if 1 <= n <= 12)
-    d2 = sum(1 for n in numbers if 13 <= n <= 24)
-    d3 = sum(1 for n in numbers if 25 <= n <= 36)
-    return {"1st Dozen": d1, "2nd Dozen": d2, "3rd Dozen": d3}
+    st.write("🧮 **Pares e Ímpares:**")
+    st.write(f"➕ Pares: {pares} | ➖ Ímpares: {impares}")
+
+    st.write("📈 **Altos e Baixos:**")
+    st.write(f"🔽 Baixos (1-18): {baixos} | 🔼 Altos (19-36): {altos}")
+
+    st.write("📊 **Colunas (1 a 3):**")
+    for i in range(1, 4):
+        st.write(f"📌 Coluna {i}: {colunas.count(i)}x")
+
+    st.write("🧩 **Dúzias (1ª a 3ª):**")
+    for i in range(1, 4):
+        st.write(f"📌 Dúzia {i}: {duzias.count(i)}x")
