@@ -1,5 +1,4 @@
 import requests
-from datetime import datetime
 
 API_URL = "https://api.casinoscores.com/svc-evolution-game-events/api/xxxtremelightningroulette/latest"
 HEADERS = {
@@ -20,18 +19,10 @@ def fetch_latest_result():
             timestamp = game_data.get("startedAt")
             lucky_numbers = [item["number"] for item in lucky_list]
 
-            if number is not None:
-                return {
-                    "number": number,
-                    "timestamp": timestamp,
-                    "lucky_numbers": lucky_numbers
-                }
-    except Exception as e:
-        print(f"Erro na API: {e}")
-    return None
-
-def update_history(history, new_result, limit=50):
-    if new_result and (not history or history[0]["timestamp"] != new_result["timestamp"]):
-        history.insert(0, new_result)
-        return history[:limit]
-    return history
+            return {
+                "number": number,
+                "timestamp": timestamp,
+                "lucky_numbers": lucky_numbers
+            }
+    except:
+        return None
